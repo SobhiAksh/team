@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f2e8">
+<title>Hörbuch Lernstudio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232a241c'/%3E%3Cpath d='M9 20v-7a7 7 0 0 1 14 0v7' stroke='%23e8c468' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Crect x='6' y='18' width='5' height='8' rx='2' fill='%23e8c468'/%3E%3Crect x='21' y='18' width='5' height='8' rx='2' fill='%23e8c468'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Layout: single column — upload shelf, detected-language strip, text preview, transport bar. */
+  :root{
+    --bg:#f6f2e8; --bg-raised:#ffffff; --bg-sunken:#ece6d8;
+    --fg:#2a241c; --fg-dim:#6e6454; --rule:rgba(42,36,28,.16); --rule-strong:rgba(42,36,28,.28);
+    --accent-en:#2f6fb0; --accent-en-soft:rgba(47,111,176,.12);
+    --accent-de:#a9701f; --accent-de-soft:rgba(169,112,31,.14);
+    --good:#3f8f45; --bad:#b23b3b;
+    --font-display:'Fraunces',Georgia,'Times New Roman',serif;
+    --font-body:'IBM Plex Sans',-apple-system,'Segoe UI',sans-serif;
+    --font-mono:'IBM Plex Mono','SF Mono',Consolas,monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15191a; --bg-raised:#1d2325; --bg-sunken:#121717;
+      --fg:#eef1ea; --fg-dim:#9aa39a; --rule:rgba(238,241,234,.16); --rule-strong:rgba(238,241,234,.3);
+      --accent-en:#7fb2e8; --accent-en-soft:rgba(127,178,232,.16);
+      --accent-de:#e3ad5c; --accent-de-soft:rgba(227,173,92,.18);
+      --good:#6fcb74; --bad:#e2726f;
+      color-scheme: dark;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg); color:var(--fg); font-family:var(--font-body);
+    font-size:15px; line-height:1.5; margin:0;
+    padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  }
+  main{max-width:640px; margin:0 auto; padding-bottom:24px;}
+  h1,h2{font-family:var(--font-display); font-weight:600; text-wrap:balance; margin:0;}
+  .mono{font-family:var(--font-mono);}
+  .bilabel{display:flex; flex-direction:column; gap:1px;}
+  .bilabel .de{font-size:.76em; font-style:italic; color:var(--fg-dim); font-weight:400;}
+
+  header.page-head{padding:22px 0 16px; border-bottom:1px solid var(--rule);}
+  .eyebrow{font-family:var(--font-mono); font-size:11px; letter-spacing:.11em; text-transform:uppercase; color:var(--fg-dim); margin:0 0 6px;}
+  h1{font-size:24px;}
+  .tagline{margin-top:6px; color:var(--fg-dim); font-size:13px; max-width:46ch;}
+
+  section{margin-top:22px;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap;}
+  .section-head h2{font-size:16px;}
+  .step-num{font-family:var(--font-mono); font-size:10.5px; color:var(--fg-dim); letter-spacing:.08em;}
+  .panel{background:var(--bg-raised); border:1px solid var(--rule); border-radius:4px; padding:16px;}
+
+  .dropzone{
+    border:1.5px dashed var(--rule-strong); border-radius:4px; background:var(--bg-sunken);
+    padding:24px 14px; text-align:center; cursor:pointer;
+  }
+  .dropzone.drag{border-color:var(--accent-en); background:var(--accent-en-soft);}
+  .dropzone .dz-title{font-family:var(--font-display); font-weight:600; font-size:16px;}
+  .dropzone .dz-sub{color:var(--fg-dim); font-size:12px; margin-top:4px;}
+  .dropzone input[type=file]{display:none;}
+
+  .file-list{list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:7px;}
+  .file-row{display:flex; align-items:center; gap:8px; padding:8px 9px; border:1px solid var(--rule); border-radius:3px; background:var(--bg); min-width:0;}
+  .file-row .fname{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px;}
+  .file-row .fmeta{font-family:var(--font-mono); font-size:10.5px; color:var(--fg-dim); white-space:nowrap;}
+  .status-chip{font-family:var(--font-mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; padding:2px 6px; border-radius:2px; white-space:nowrap;}
+  .status-chip.queued{color:var(--fg-dim); background:var(--bg-sunken);}
+  .status-chip.parsing{color:var(--accent-en); background:var(--accent-en-soft);}
+  .status-chip.ready{color:var(--good); background:rgba(63,143,69,.12);}
+  .status-chip.error{color:var(--bad); background:rgba(178,59,59,.12);}
+  .status-chip.empty{color:var(--accent-de); background:var(--accent-de-soft);}
+  .file-row .remove{border:none; background:none; color:var(--fg-dim); cursor:pointer; font-size:15px; line-height:1; padding:2px 4px;}
+  .combined-stats{margin-top:10px; font-family:var(--font-mono); font-size:11.5px; color:var(--fg-dim); display:flex; gap:14px; flex-wrap:wrap;}
+
+  .lang-row{display:flex; gap:8px; align-items:center;}
+  .lang-pill{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.05em; padding:7px 13px; border-radius:3px;
+    border:1px solid var(--rule-strong); background:transparent; color:var(--fg-dim); cursor:pointer;
+  }
+  .lang-pill.active.en{color:var(--accent-en); background:var(--accent-en-soft); border-color:var(--accent-en);}
+  .lang-pill.active.de{color:var(--accent-de); background:var(--accent-de-soft); border-color:var(--accent-de);}
+  .detect-note{font-size:12px; color:var(--fg-dim); margin-top:8px;}
+
+  .script-body{padding:14px 15px; overflow-y:auto; max-height:260px; font-size:14px; line-height:1.68; border:1px solid var(--rule); border-radius:4px; background:var(--bg-raised);}
+  .script-body .word{border-radius:2px;}
+  .script-body .word.active{background:var(--accent-en-soft); color:var(--accent-en);}
+  body[data-lang="de"] .script-body .word.active{background:var(--accent-de-soft); color:var(--accent-de);}
+  .script-placeholder{color:var(--fg-dim); font-size:13.5px; text-align:center; padding:30px 10px;}
+
+  .btn{font-family:var(--font-body); font-weight:600; font-size:13px; border-radius:3px; border:1px solid transparent; padding:9px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; justify-content:center;}
+  .btn:disabled{cursor:not-allowed; opacity:.5;}
+  .btn-primary{background:var(--fg); color:var(--bg);}
+  .btn-primary:hover:not(:disabled){opacity:.88;}
+  .btn-ghost{background:transparent; border-color:var(--rule-strong); color:var(--fg);}
+  .btn-ghost:hover:not(:disabled){border-color:var(--fg);}
+  .btn-sm{padding:6px 10px; font-size:11.5px;}
+
+  .transport-panel{margin-top:12px; display:flex; flex-direction:column; gap:10px;}
+  .transport{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .card-status{font-size:12px; color:var(--fg-dim); flex:1; min-width:120px; text-align:right;}
+  .rate-row{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--fg-dim);}
+  .rate-row input[type=range]{flex:1; accent-color:var(--fg);}
+  .voice-row select{width:100%; font-family:var(--font-body); font-size:12.5px; padding:6px 7px; border-radius:3px; border:1px solid var(--rule-strong); background:var(--bg); color:var(--fg);}
+
+  .footnote{margin-top:28px; padding-top:14px; border-top:1px solid var(--rule); font-size:11.5px; color:var(--fg-dim); display:flex; gap:10px; flex-wrap:wrap;}
+  [hidden]{display:none !important;}
+</style>
+</head>
+<body>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="vendor/pdf.min.js"></script>
+
+<main>
+  <header class="page-head">
+    <p class="eyebrow">PDF → Hörbuch</p>
+    <h1>Hörbuch Lernstudio</h1>
+    <p class="tagline bilabel">
+      <span class="en">Upload your course PDFs and have them read aloud.</span>
+      <span class="de">Lade deine Kursunterlagen hoch und lass sie dir vorlesen.</span>
+    </p>
+  </header>
+
+  <section id="upload-section">
+    <div class="section-head">
+      <h2 class="bilabel"><span class="en">1. Add your notes</span><span class="de">1. Unterlagen hinzufügen</span></h2>
+      <span class="step-num">PDF ONLY</span>
+    </div>
+    <div class="panel">
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload PDF files">
+        <div class="dz-title">Tap to choose a PDF</div>
+        <div class="dz-sub">One chapter or several — text is pulled out right here, nothing is uploaded anywhere.</div>
+        <input type="file" id="fileInput" accept="application/pdf,.pdf" multiple>
+      </div>
+      <ul class="file-list" id="fileList" hidden></ul>
+      <div class="combined-stats" id="combinedStats" hidden></div>
+    </div>
+  </section>
+
+  <section id="voice-section" hidden>
+    <div class="section-head">
+      <h2 class="bilabel"><span class="en">2. Pick a voice</span><span class="de">2. Stimme wählen</span></h2>
+      <span class="step-num">EN / DE</span>
+    </div>
+    <div class="panel">
+      <div class="lang-row">
+        <button class="lang-pill en" id="pick-en" data-lang="en">EN — English</button>
+        <button class="lang-pill de" id="pick-de" data-lang="de">DE — Deutsch</button>
+      </div>
+      <div class="detect-note" id="detectNote"></div>
+    </div>
+  </section>
+
+  <section id="listen-section" hidden>
+    <div class="section-head">
+      <h2 class="bilabel"><span class="en">3. Listen</span><span class="de">3. Hören</span></h2>
+      <span class="step-num" id="wordCountNote"></span>
+    </div>
+    <div class="script-body" id="scriptBody"><div class="script-placeholder">Your extracted text will appear here.</div></div>
+    <div class="transport-panel">
+      <div class="transport">
+        <button class="btn btn-ghost btn-sm" id="playBtn">▶ Play</button>
+        <button class="btn btn-ghost btn-sm" id="stopBtn">■ Stop</button>
+        <button class="btn btn-ghost btn-sm" id="downloadBtn">Download .txt</button>
+        <span class="card-status" id="playStatus">Ready.</span>
+      </div>
+      <div class="voice-row"><select id="voiceSelect"></select></div>
+      <div class="rate-row">Speed <input type="range" id="rateInput" min="0.75" max="1.5" step="0.05" value="1"> <span class="mono" id="rateVal">1.00×</span></div>
+    </div>
+  </section>
+
+  <div class="footnote">
+    <span>① Text extraction happens entirely on this device.</span>
+    <span>② Nothing you upload is sent anywhere.</span>
+    <span>③ Playback uses your phone's own voices — quality varies by device.</span>
+  </div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Telegram WebApp integration (no-op outside Telegram) ----------
+  var tg = window.Telegram && window.Telegram.WebApp;
+  function applyTelegramTheme(){
+    if (!tg) return;
+    var tp = tg.themeParams || {};
+    var root = document.documentElement;
+    if (tp.bg_color) root.style.setProperty("--bg", tp.bg_color);
+    if (tp.text_color) root.style.setProperty("--fg", tp.text_color);
+    if (tp.hint_color) root.style.setProperty("--fg-dim", tp.hint_color);
+    if (tp.secondary_bg_color) root.style.setProperty("--bg-sunken", tp.secondary_bg_color);
+  }
+  if (tg) {
+    try { tg.ready(); tg.expand(); applyTelegramTheme(); tg.onEvent("themeChanged", applyTelegramTheme); } catch (e) {}
+  }
+  function haptic(kind){
+    try { if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(kind || "light"); } catch (e) {}
+  }
+
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdf.worker.min.js";
+  }
+
+  var DE_HINTS = ["der","die","das","und","nicht","ist","mit","für","eine","einer","werden","wird","kann","auch","sich","dass","sind","wie","oder","durch","über","wenn","sowie","diese","dieser"];
+  var EN_HINTS = ["the","and","is","of","to","in","that","with","for","are","this","as","by","or","be","from","an","it","which","these","have"];
+
+  var state = { files: [], combinedText: "", lang: "en", spans: null, activeSpan: null, voices: [], playing: false, started: false };
+
+  var el = {
+    dropzone: document.getElementById("dropzone"),
+    fileInput: document.getElementById("fileInput"),
+    fileList: document.getElementById("fileList"),
+    combinedStats: document.getElementById("combinedStats"),
+    voiceSection: document.getElementById("voice-section"),
+    listenSection: document.getElementById("listen-section"),
+    detectNote: document.getElementById("detectNote"),
+    pickEn: document.getElementById("pick-en"),
+    pickDe: document.getElementById("pick-de"),
+    scriptBody: document.getElementById("scriptBody"),
+    wordCountNote: document.getElementById("wordCountNote"),
+    playBtn: document.getElementById("playBtn"),
+    stopBtn: document.getElementById("stopBtn"),
+    downloadBtn: document.getElementById("downloadBtn"),
+    playStatus: document.getElementById("playStatus"),
+    voiceSelect: document.getElementById("voiceSelect"),
+    rateInput: document.getElementById("rateInput"),
+    rateVal: document.getElementById("rateVal")
+  };
+
+  var uidSeed = 0;
+  function uid(){ uidSeed++; return "f" + Date.now().toString(36) + uidSeed; }
+  function escapeHtml(s){ return String(s).replace(/[&<>]/g, function(c){ return c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;"; }); }
+  function escapeAttr(s){ return escapeHtml(s).replace(/"/g, "&quot;"); }
+
+  // ---------- Upload + extraction ----------
+
+  el.dropzone.addEventListener("click", function(){ el.fileInput.click(); });
+  el.dropzone.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.fileInput.click(); } });
+  ["dragenter","dragover"].forEach(function(evt){ el.dropzone.addEventListener(evt, function(e){ e.preventDefault(); el.dropzone.classList.add("drag"); }); });
+  ["dragleave","drop"].forEach(function(evt){ el.dropzone.addEventListener(evt, function(e){ e.preventDefault(); el.dropzone.classList.remove("drag"); }); });
+  el.dropzone.addEventListener("drop", function(e){ if (e.dataTransfer && e.dataTransfer.files) handleNewFiles(e.dataTransfer.files); });
+  el.fileInput.addEventListener("change", function(){ handleNewFiles(el.fileInput.files); el.fileInput.value = ""; });
+
+  function handleNewFiles(fileList){
+    var arr = Array.prototype.filter.call(fileList, function(f){ return f.type === "application/pdf" || /\.pdf$/i.test(f.name); });
+    if (!arr.length) return;
+    haptic("light");
+    arr.forEach(function(f){ state.files.push({ id: uid(), file: f, name: f.name, size: f.size, status: "queued", pages: null, progress: 0, text: "", error: "" }); });
+    renderFiles();
+    processQueue();
+  }
+
+  var processing = false;
+  function processQueue(){
+    if (processing) return;
+    processing = true;
+    (async function(){
+      for (var i = 0; i < state.files.length; i++){ if (state.files[i].status === "queued") await extractFile(state.files[i]); }
+      processing = false;
+    })();
+  }
+
+  async function extractFile(entry){
+    entry.status = "parsing"; renderFiles();
+    try {
+      var buf = await entry.file.arrayBuffer();
+      var pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+      entry.pages = pdf.numPages;
+      var text = "";
+      for (var i = 1; i <= pdf.numPages; i++){
+        entry.progress = i; renderFiles();
+        var page = await pdf.getPage(i);
+        var content = await page.getTextContent();
+        text += content.items.map(function(it){ return it.str; }).join(" ") + "\n\n";
+        if (page.cleanup) page.cleanup();
+      }
+      entry.text = text.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+      entry.status = entry.text.length > 30 ? "ready" : "empty";
+    } catch (err) {
+      entry.status = "error";
+      entry.error = (err && err.message) ? err.message : "Could not read this PDF.";
+    }
+    renderFiles();
+    recombine();
+  }
+
+  function removeFile(id){ state.files = state.files.filter(function(f){ return f.id !== id; }); renderFiles(); recombine(); }
+
+  function renderFiles(){
+    if (!state.files.length) { el.fileList.hidden = true; el.fileList.innerHTML = ""; return; }
+    el.fileList.hidden = false;
+    el.fileList.innerHTML = state.files.map(function(f){
+      var label = f.status === "queued" ? "queued"
+        : f.status === "parsing" ? ("reading " + (f.pages ? (f.progress + "/" + f.pages) : "…"))
+        : f.status === "ready" ? ("ready · " + f.pages + " pg")
+        : f.status === "empty" ? "no text found"
+        : "error";
+      return '<li class="file-row" data-id="' + f.id + '">' +
+        '<span class="fname" title="' + escapeAttr(f.name) + '">' + escapeHtml(f.name) + "</span>" +
+        '<span class="fmeta">' + Math.max(1, Math.round(f.size / 1024)) + " KB</span>" +
+        '<span class="status-chip ' + f.status + '">' + label + "</span>" +
+        '<button class="remove" data-remove="' + f.id + '" aria-label="Remove ' + escapeAttr(f.name) + '">&times;</button></li>';
+    }).join("");
+  }
+  el.fileList.addEventListener("click", function(e){
+    var btn = e.target.closest ? e.target.closest("[data-remove]") : null;
+    if (btn) removeFile(btn.getAttribute("data-remove"));
+  });
+
+  function recombine(){
+    var ready = state.files.filter(function(f){ return f.status === "ready"; });
+    state.combinedText = ready.map(function(f){ return f.text; }).join("\n\n");
+    var words = state.combinedText ? state.combinedText.trim().split(/\s+/).length : 0;
+    el.combinedStats.hidden = !state.combinedText;
+    if (state.combinedText) {
+      el.combinedStats.innerHTML = "<span>" + ready.length + " file" + (ready.length === 1 ? "" : "s") + " parsed</span><span>~" + words.toLocaleString() + " words</span>";
+      el.voiceSection.hidden = false;
+      el.listenSection.hidden = false;
+      detectLanguage();
+      setScript(state.combinedText);
+    } else {
+      el.voiceSection.hidden = true;
+      el.listenSection.hidden = true;
+    }
+  }
+
+  // ---------- Language detection + voice picking ----------
+
+  function detectLanguage(){
+    var lower = " " + state.combinedText.toLowerCase() + " ";
+    var deScore = 0, enScore = 0;
+    DE_HINTS.forEach(function(w){ deScore += (lower.split(" " + w + " ").length - 1); });
+    EN_HINTS.forEach(function(w){ enScore += (lower.split(" " + w + " ").length - 1); });
+    var guess = deScore > enScore ? "de" : "en";
+    setLang(guess);
+    el.detectNote.textContent = deScore === 0 && enScore === 0
+      ? "Couldn't guess the language — pick one above."
+      : "Looks mostly like " + (guess === "de" ? "German" : "English") + " — switch above if that's wrong.";
+  }
+
+  function setLang(lang){
+    state.lang = lang;
+    document.body.setAttribute("data-lang", lang);
+    el.pickEn.classList.toggle("active", lang === "en");
+    el.pickDe.classList.toggle("active", lang === "de");
+    stopPlayback();
+    populateVoices();
+  }
+  el.pickEn.addEventListener("click", function(){ haptic("light"); setLang("en"); });
+  el.pickDe.addEventListener("click", function(){ haptic("light"); setLang("de"); });
+
+  // ---------- Script preview + word highlighting ----------
+
+  function setScript(text){
+    el.scriptBody.innerHTML = "";
+    var frag = document.createDocumentFragment();
+    var re = /\S+/g, m, last = 0, spans = [];
+    while ((m = re.exec(text))) {
+      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      var span = document.createElement("span");
+      span.className = "word";
+      span.textContent = m[0];
+      span.dataset.start = String(m.index);
+      frag.appendChild(span);
+      spans.push(span);
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    el.scriptBody.appendChild(frag);
+    state.spans = spans;
+    state.activeSpan = null;
+    var words = text.trim().split(/\s+/).length;
+    var minutes = Math.max(1, Math.round(words / 140));
+    el.wordCountNote.textContent = words.toLocaleString() + " words · ~" + minutes + " min";
+  }
+
+  function highlight(charIndex){
+    var spans = state.spans;
+    if (!spans || !spans.length) return;
+    var lo = 0, hi = spans.length - 1, ans = 0;
+    while (lo <= hi) {
+      var mid = (lo + hi) >> 1;
+      if (Number(spans[mid].dataset.start) <= charIndex) { ans = mid; lo = mid + 1; } else hi = mid - 1;
+    }
+    var target = spans[ans];
+    if (state.activeSpan === target) return;
+    if (state.activeSpan) state.activeSpan.classList.remove("active");
+    target.classList.add("active");
+    state.activeSpan = target;
+    var top = target.offsetTop - el.scriptBody.clientHeight / 2 + target.clientHeight / 2;
+    el.scriptBody.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }
+  function clearHighlight(){ if (state.activeSpan) { state.activeSpan.classList.remove("active"); state.activeSpan = null; } }
+
+  // ---------- Voices ----------
+
+  function loadVoices(){
+    return new Promise(function(resolve){
+      if (!("speechSynthesis" in window)) { resolve([]); return; }
+      var v = window.speechSynthesis.getVoices();
+      if (v.length) { resolve(v); return; }
+      var done = false;
+      var handler = function(){
+        if (done) return;
+        var vv = window.speechSynthesis.getVoices();
+        if (vv.length) { done = true; window.speechSynthesis.removeEventListener("voiceschanged", handler); resolve(vv); }
+      };
+      window.speechSynthesis.addEventListener("voiceschanged", handler);
+      setTimeout(function(){ if (!done) { done = true; resolve(window.speechSynthesis.getVoices()); } }, 2000);
+    });
+  }
+
+  function savedPref(key, fallback){ try { var v = localStorage.getItem(key); return v === null ? fallback : v; } catch (e) { return fallback; } }
+  function savePref(key, val){ try { localStorage.setItem(key, val); } catch (e) {} }
+
+  function populateVoices(){
+    loadVoices().then(function(voices){
+      var matched = voices.filter(function(v){ return v.lang.toLowerCase().indexOf(state.lang) === 0; });
+      var list = matched.length ? matched : voices;
+      state.voices = list;
+      if (!list.length) { el.voiceSelect.innerHTML = '<option value="">Default voice</option>'; return; }
+      el.voiceSelect.innerHTML = list.map(function(v){ return '<option value="' + escapeAttr(v.name) + '">' + escapeHtml(v.name + " (" + v.lang + ")") + "</option>"; }).join("");
+      var pref = savedPref("hls-voice-" + state.lang, "");
+      if (pref && list.some(function(v){ return v.name === pref; })) el.voiceSelect.value = pref;
+      var rate = parseFloat(savedPref("hls-rate-" + state.lang, "1")) || 1;
+      el.rateInput.value = rate;
+      el.rateVal.textContent = rate.toFixed(2) + "×";
+    });
+  }
+  el.voiceSelect.addEventListener("change", function(){ savePref("hls-voice-" + state.lang, el.voiceSelect.value); });
+  el.rateInput.addEventListener("input", function(){
+    var v = parseFloat(el.rateInput.value);
+    el.rateVal.textContent = v.toFixed(2) + "×";
+    savePref("hls-rate-" + state.lang, v);
+  });
+
+  // ---------- Playback ----------
+
+  function updatePlayButton(mode){
+    var label = state.lang === "en" ? { idle: "▶ Play", playing: "⏸ Pause", paused: "▶ Resume" }
+                                      : { idle: "▶ Abspielen", playing: "⏸ Pause", paused: "▶ Fortsetzen" };
+    el.playBtn.textContent = label[mode];
+  }
+
+  function playPause(){
+    if (!("speechSynthesis" in window)) { el.playStatus.textContent = "Speech synthesis isn't supported here."; return; }
+    if (!state.combinedText) return;
+    haptic("light");
+
+    if (state.playing) {
+      window.speechSynthesis.pause();
+      state.playing = false;
+      updatePlayButton("paused");
+      el.playStatus.textContent = "Paused.";
+      return;
+    }
+    if (state.started && !state.playing) {
+      window.speechSynthesis.resume();
+      state.playing = true;
+      updatePlayButton("playing");
+      el.playStatus.textContent = state.lang === "de" ? "Wird vorgelesen…" : "Reading aloud…";
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    clearHighlight();
+    var utter = new SpeechSynthesisUtterance(state.combinedText);
+    utter.lang = state.lang === "de" ? "de-DE" : "en-US";
+    utter.rate = parseFloat(el.rateInput.value) || 1;
+    var voice = (state.voices || []).find(function(v){ return v.name === el.voiceSelect.value; });
+    if (voice) utter.voice = voice;
+    utter.onboundary = function(e){ if (!e.name || e.name === "word") highlight(e.charIndex); };
+    utter.onstart = function(){
+      state.playing = true; state.started = true;
+      updatePlayButton("playing");
+      el.playStatus.textContent = state.lang === "de" ? "Wird vorgelesen…" : "Reading aloud…";
+    };
+    utter.onend = function(){
+      state.playing = false; state.started = false;
+      updatePlayButton("idle");
+      el.playStatus.textContent = state.lang === "de" ? "Fertig." : "Finished.";
+      clearHighlight();
+    };
+    utter.onerror = function(e){ if (e.error === "interrupted" || e.error === "canceled") return; el.playStatus.textContent = "Playback error: " + e.error; };
+    window.speechSynthesis.speak(utter);
+  }
+
+  function stopPlayback(){
+    window.speechSynthesis.cancel();
+    state.playing = false; state.started = false;
+    updatePlayButton("idle");
+    clearHighlight();
+    el.playStatus.textContent = state.lang === "de" ? "Bereit." : "Ready.";
+  }
+
+  el.playBtn.addEventListener("click", playPause);
+  el.stopBtn.addEventListener("click", function(){ haptic("light"); stopPlayback(); });
+  el.downloadBtn.addEventListener("click", function(){
+    if (!state.combinedText) return;
+    haptic("light");
+    var blob = new Blob([state.combinedText], { type: "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "notes-" + state.lang + ".txt";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  });
+
+  setLang("en");
+})();
+</script>
+</body>
+</html>
