@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Hörbuch Lernstudio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: lesson shelf on the left, reading/listening panel on the right; stacks on phones. */
+:root{
+  --bg:#eef1f3; --surface:#fbfcfc; --ink:#15212b; --muted:#5b6b78; --line:#d3dbe1;
+  --accent:#0d6b73; --accent-ink:#ffffff; --mark:#cfeceb; --warn:#a4372a;
+  --f-display:"Bricolage Grotesque",system-ui,sans-serif;
+  --f-read:"Source Serif 4",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1419; --surface:#141d24; --ink:#e4ecf1; --muted:#8fa2b0; --line:#243340;
+  --accent:#5fcac4; --accent-ink:#06201f; --mark:#1b3a3d; --warn:#f08a7a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1419; --surface:#141d24; --ink:#e4ecf1; --muted:#8fa2b0; --line:#243340;
+  --accent:#5fcac4; --accent-ink:#06201f; --mark:#1b3a3d; --warn:#f08a7a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-read);
+  padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:20px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font:700 clamp(1.6rem,4vw,2.2rem)/1.1 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);font-size:.9rem;margin:0}
+.grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.shelf{display:grid;gap:8px;min-width:0}
+.shelf h2,.label{font:500 .72rem var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 2px}
+.lesson{text-align:left;background:transparent;border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:grid;gap:2px}
+.lesson b{font:700 1rem var(--f-display)}
+.lesson span{font:400 .75rem var(--f-mono);color:var(--muted)}
+.lesson[aria-current="true"]{background:var(--surface);border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:8px 14px;font:500 .9rem var(--f-display)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--warn);border-color:var(--warn);background:transparent}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;border-bottom:3px solid transparent;padding:12px 8px;font:500 .95rem var(--f-display);color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.body{padding:18px max(16px,3vw)}
+.read{font-size:1.12rem;line-height:1.7;max-width:62ch;max-height:46vh;overflow-y:auto;padding-right:6px}
+.read p{margin:0 0 1em}
+.read .s{cursor:pointer;border-radius:3px;padding:1px 0}
+.read .s.on{background:var(--mark);box-shadow:0 0 0 3px var(--mark)}
+.bar{position:sticky;bottom:0;border-top:1px solid var(--line);background:var(--surface);padding:12px max(16px,3vw) 14px;display:grid;gap:10px}
+.prog{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.meta{display:flex;justify-content:space-between;gap:8px;font:400 .78rem var(--f-mono);color:var(--muted);flex-wrap:wrap}
+.ctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.round{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;padding:0}
+.round.play{width:56px;height:56px;background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.round svg{width:22px;height:22px;fill:currentColor}
+.opts{display:flex;gap:14px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.opts label{display:flex;gap:6px;align-items:center;font:400 .8rem var(--f-mono);color:var(--muted)}
+.opts select{max-width:180px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px}
+.opts input[type=range]{width:110px;accent-color:var(--accent)}
+.note{color:var(--muted);font-size:.9rem;margin:0 0 12px}
+.card{border:1px solid var(--line);border-radius:10px;min-height:190px;padding:22px;display:grid;place-items:center;text-align:center;cursor:pointer;font:600 1.3rem/1.35 var(--f-display);background:var(--bg);width:100%}
+.card small{display:block;font:500 .72rem var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.card.back{border-color:var(--accent)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.stack{display:grid;gap:12px;max-width:62ch}
+.stack label{display:grid;gap:4px}
+.stack input,.stack textarea{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;width:100%}
+.stack textarea{min-height:150px;resize:vertical;font-family:var(--f-read)}
+.stack textarea.mono{font:400 .85rem/1.5 var(--f-mono)}
+.empty{color:var(--muted);padding:30px 0;text-align:center}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Hörbuch Lernstudio</h1>
+    <p class="sub">Texte anhören, wiederholen, abfragen. Ohne Konto, alles auf diesem Gerät.</p>
+  </header>
+  <div class="grid">
+    <aside class="shelf" aria-label="Lektionen">
+      <h2>Lektionen</h2>
+      <div id="list" class="shelf"></div>
+      <button class="btn" id="new" type="button">+ Neue Lektion</button>
+    </aside>
+    <section class="panel">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="t-play" data-tab="play" aria-selected="true">Hören</button>
+        <button role="tab" id="t-cards" data-tab="cards" aria-selected="false">Karteikarten</button>
+        <button role="tab" id="t-edit" data-tab="edit" aria-selected="false">Bearbeiten</button>
+      </div>
+      <div id="v-play">
+        <div class="body">
+          <p class="note" id="novoice" hidden></p>
+          <div class="read" id="read" aria-live="off"></div>
+        </div>
+        <div class="bar">
+          <div class="prog"><i id="pbar"></i></div>
+          <div class="meta"><span id="pinfo">Satz 0 von 0</span><span id="pleft"></span></div>
+          <div class="ctl">
+            <button class="round" id="prev" type="button" aria-label="Voriger Satz"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+            <button class="round play" id="play" type="button" aria-label="Abspielen"></button>
+            <button class="round" id="next" type="button" aria-label="Nächster Satz"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+            <div class="opts">
+              <label for="rate">Tempo <input type="range" id="rate" min="0.6" max="1.6" step="0.1"><span id="rateV">1.0×</span></label>
+              <label for="voice">Stimme <select id="voice"></select></label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="v-cards" class="body" hidden></div>
+      <div id="v-edit" class="body" hidden>
+        <form class="stack" id="form">
+          <label for="f-title"><span class="label">Titel</span><input id="f-title" autocomplete="off"></label>
+          <label for="f-text"><span class="label">Text zum Anhören (Leerzeile = neuer Absatz)</span><textarea id="f-text"></textarea></label>
+          <label for="f-cards"><span class="label">Karteikarten (eine pro Zeile: Frage :: Antwort)</span><textarea id="f-cards" class="mono"></textarea></label>
+          <div class="row"><button class="btn primary" type="submit">Speichern</button><button class="btn danger" type="button" id="del">Lektion löschen</button><span id="saved" class="sub"></span></div>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY='hls.v1', synth=window.speechSynthesis;
+  var SAMPLE={id:'demo',title:'Photosynthese (Beispiel)',pos:0,
+    text:"Die Photosynthese ist der Vorgang, bei dem Pflanzen Lichtenergie in chemische Energie umwandeln. Sie findet in den Chloroplasten statt, die den grünen Farbstoff Chlorophyll enthalten.\n\nDabei nehmen die Pflanzen Kohlenstoffdioxid aus der Luft und Wasser aus dem Boden auf. Mithilfe des Sonnenlichts entstehen daraus Traubenzucker und Sauerstoff. Den Sauerstoff geben die Pflanzen an die Umgebung ab.\n\nDie Reaktion besteht aus zwei Teilen. In der Lichtreaktion wird Wasser gespalten und Energie in Form von ATP gespeichert. In der Dunkelreaktion, dem Calvin-Zyklus, wird mit dieser Energie Kohlenstoffdioxid zu Zucker aufgebaut.",
+    cards:[{q:'Wo findet die Photosynthese statt?',a:'In den Chloroplasten',b:0},{q:'Welcher Farbstoff fängt das Licht ein?',a:'Chlorophyll',b:0},{q:'Welche Stoffe entstehen bei der Photosynthese?',a:'Traubenzucker und Sauerstoff',b:0},{q:'Wie heißt die Dunkelreaktion?',a:'Calvin-Zyklus',b:0}]};
+  var st=load(), S=[], idx=0, playing=false, token=0, voices=[], cardI=0, flipped=false, tab='play';
+
+  function load(){try{var r=JSON.parse(localStorage.getItem(KEY));if(r&&r.lessons&&r.lessons.length)return r}catch(e){}return{lessons:[SAMPLE],cur:'demo',rate:1,voice:''}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+  function $(id){return document.getElementById(id)}
+  function cur(){return st.lessons.filter(function(l){return l.id===st.cur})[0]||st.lessons[0]}
+  function parse(text){var out=[];text.split(/\n\s*\n/).map(function(s){return s.trim()}).filter(Boolean).forEach(function(p,pi){
+    p.split(/(?<=[.!?…])\s+|\n/).map(function(s){return s.trim()}).filter(Boolean).forEach(function(s){out.push({t:s,p:pi})})});return out}
+  function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+
+  var ICON_PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',ICON_PAUSE='<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+
+  function renderList(){var box=$('list');box.textContent='';st.lessons.forEach(function(l){
+    var b=el('button','lesson');b.type='button';b.setAttribute('aria-current',String(l.id===cur().id));
+    b.appendChild(el('b',null,l.title||'Ohne Titel'));
+    b.appendChild(el('span',null,parse(l.text).length+' Sätze · '+l.cards.length+' Karten'));
+    b.onclick=function(){stop();st.cur=l.id;save();openLesson()};box.appendChild(b)})}
+
+  function renderText(){var r=$('read');r.textContent='';S=parse(cur().text);
+    if(!S.length){r.appendChild(el('p','empty','Dieser Text ist noch leer. Öffne „Bearbeiten“ und füge einen Text ein.'))}
+    var p=null,last=-1;S.forEach(function(s,i){if(s.p!==last){p=el('p');r.appendChild(p);last=s.p}
+      var sp=el('span','s',s.t+' ');sp.dataset.i=i;p.appendChild(sp)});
+    r.onclick=function(e){var t=e.target.closest('.s');if(t){var i=+t.dataset.i;if(playing)speak(i);else{idx=i;mark()}}}}
+
+  function mark(){var cs=document.querySelectorAll('.s');for(var i=0;i<cs.length;i++){cs[i].classList.toggle('on',i===idx)}
+    var c=cs[idx];if(c&&playing){c.scrollIntoView({block:'center',behavior:'smooth'})}
+    var n=S.length,words=0;for(var j=idx;j<n;j++)words+=S[j].t.split(/\s+/).length;
+    var min=Math.max(0,Math.round(words/150/st.rate));
+    $('pbar').style.width=(n?idx/n*100:0)+'%';$('pinfo').textContent='Satz '+(n?idx+1:0)+' von '+n;
+    $('pleft').textContent=n&&idx<n?'noch ca. '+min+' Min.':'';
+    cur().pos=idx;save()}
+
+  function ui(){$('play').innerHTML=playing?ICON_PAUSE:ICON_PLAY;$('play').setAttribute('aria-label',playing?'Pause':'Abspielen')}
+
+  function speak(i){
+    if(!synth||!S.length)return;
+    if(i>=S.length){stop();idx=0;mark();return}
+    if(i<0)i=0;
+    token++;var my=token;synth.cancel();idx=i;playing=true;ui();mark();
+    var u=new SpeechSynthesisUtterance(S[i].t);u.lang='de-DE';u.rate=st.rate;
+    var v=voices.filter(function(x){return x.voiceURI===st.voice})[0];if(v){u.voice=v;u.lang=v.lang}
+    u.onend=function(){if(my===token&&playing)speak(i+1)};
+    u.onerror=function(){if(my===token){playing=false;ui()}};
+    synth.speak(u)}
+  function stop(){token++;playing=false;if(synth)synth.cancel();ui()}
+
+  function loadVoices(){if(!synth)return;var all=synth.getVoices();
+    voices=all.filter(function(v){return /^de/i.test(v.lang)});var nov=$('novoice');
+    if(!voices.length){voices=all;nov.hidden=!all.length;nov.textContent='Auf diesem Gerät gibt es keine deutsche Stimme. Es wird eine andere Stimme genutzt. Neue Stimmen findest du in den Systemeinstellungen unter Sprachausgabe.'}else nov.hidden=true;
+    var sel=$('voice');sel.textContent='';voices.forEach(function(v){var o=el('option',null,v.name+' ('+v.lang+')');o.value=v.voiceURI;sel.appendChild(o)});
+    if(!voices.some(function(v){return v.voiceURI===st.voice}))st.voice=voices[0]?voices[0].voiceURI:'';
+    sel.value=st.voice}
+
+  /* Karteikarten */
+  function queue(){var l=cur();return l.cards.map(function(c,i){return i}).filter(function(i){return l.cards[i].b<3})}
+  function renderCards(){var box=$('v-cards');box.textContent='';var l=cur();
+    if(!l.cards.length){box.appendChild(el('p','empty','Noch keine Karten. Trage unter „Bearbeiten“ Zeilen im Format „Frage :: Antwort“ ein.'));return}
+    var q=queue(),known=l.cards.length-q.length;
+    var head=el('p','note',known+' von '+l.cards.length+' Karten gewusst');box.appendChild(head);
+    if(!q.length){box.appendChild(el('p','empty','Alle Karten sitzen. Gut gemacht!'));
+      var r=el('button','btn primary','Von vorn beginnen');r.type='button';r.onclick=function(){l.cards.forEach(function(c){c.b=0});save();cardI=0;flipped=false;renderCards()};box.appendChild(r);return}
+    if(cardI>=q.length)cardI=0;var c=l.cards[q[cardI]];
+    var card=el('button','card'+(flipped?' back':''));card.type='button';
+    card.appendChild(el('div',null));var inner=card.firstChild;inner.appendChild(el('small',null,flipped?'Antwort':'Frage'));inner.appendChild(document.createTextNode(flipped?c.a:c.q));
+    card.onclick=function(){flipped=!flipped;renderCards()};box.appendChild(card);
+    var row=el('div','row');
+    if(!flipped){var sh=el('button','btn','Antwort zeigen');sh.type='button';sh.onclick=function(){flipped=true;renderCards()};row.appendChild(sh)}
+    else{var no=el('button','btn','Nochmal');no.type='button';no.onclick=function(){c.b=0;cardI=(cardI+1)%q.length;flipped=false;save();renderCards()};
+      var yes=el('button','btn primary','Gewusst');yes.type='button';yes.onclick=function(){c.b=3;flipped=false;save();renderCards()};row.appendChild(no);row.appendChild(yes)}
+    var rd=el('button','btn','Frage vorlesen');rd.type='button';rd.onclick=function(){if(!synth)return;stop();var u=new SpeechSynthesisUtterance(flipped?c.a:c.q);u.lang='de-DE';u.rate=st.rate;var v=voices.filter(function(x){return x.voiceURI===st.voice})[0];if(v){u.voice=v;u.lang=v.lang}synth.speak(u)};row.appendChild(rd);
+    box.appendChild(row)}
+
+  /* Editor */
+  function fillForm(){var l=cur();$('f-title').value=l.title;$('f-text').value=l.text;
+    $('f-cards').value=l.cards.map(function(c){return c.q+' :: '+c.a}).join('\n');$('saved').textContent=''}
+  $('form').onsubmit=function(e){e.preventDefault();var l=cur(),old=l.text;
+    l.title=$('f-title').value.trim()||'Ohne Titel';l.text=$('f-text').value;if(l.text!==old)l.pos=0;
+    var prev={};l.cards.forEach(function(c){prev[c.q]=c.b});
+    l.cards=$('f-cards').value.split('\n').map(function(s){var p=s.split('::');return p.length>1?{q:p[0].trim(),a:p.slice(1).join('::').trim()}:null})
+      .filter(function(c){return c&&c.q&&c.a}).map(function(c){c.b=prev[c.q]||0;return c});
+    save();stop();renderList();renderText();idx=Math.min(l.pos||0,Math.max(S.length-1,0));mark();cardI=0;flipped=false;$('saved').textContent='Gespeichert'};
+  var delT=null;$('del').onclick=function(){var b=$('del');
+    if(delT){clearTimeout(delT);delT=null;st.lessons=st.lessons.filter(function(x){return x.id!==cur().id});
+      if(!st.lessons.length)st.lessons=[{id:'n'+Date.now(),title:'Neue Lektion',text:'',cards:[],pos:0}];
+      stop();st.cur=st.lessons[0].id;save();b.textContent='Lektion löschen';openLesson();return}
+    b.textContent='Wirklich löschen? Nochmal klicken';delT=setTimeout(function(){delT=null;b.textContent='Lektion löschen'},3500)};
+  $('new').onclick=function(){stop();var l={id:'n'+Date.now(),title:'Neue Lektion',text:'',cards:[],pos:0};st.lessons.push(l);st.cur=l.id;save();openLesson();setTab('edit')};
+
+  function setTab(t){tab=t;['play','cards','edit'].forEach(function(k){$('v-'+k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',String(k===t))});
+    if(t==='cards'){renderCards()}if(t==='edit'){fillForm()}}
+  document.querySelector('.tabs').onclick=function(e){var b=e.target.closest('button');if(b)setTab(b.dataset.tab)};
+
+  function openLesson(){renderList();renderText();idx=Math.min(cur().pos||0,Math.max(S.length-1,0));mark();cardI=0;flipped=false;setTab(tab)}
+
+  $('play').onclick=function(){if(!synth){return}if(playing){stop()}else{speak(idx)}};
+  $('prev').onclick=function(){if(playing)speak(idx-1);else{idx=Math.max(0,idx-1);mark()}};
+  $('next').onclick=function(){if(playing)speak(idx+1);else{idx=Math.min(S.length-1,idx+1);mark()}};
+  $('rate').value=st.rate;$('rateV').textContent=(+st.rate).toFixed(1)+'×';
+  $('rate').oninput=function(){st.rate=+this.value;$('rateV').textContent=st.rate.toFixed(1)+'×';save();if(playing)speak(idx);else mark()};
+  $('voice').onchange=function(){st.voice=this.value;save();if(playing)speak(idx)};
+  window.addEventListener('pagehide',function(){if(synth)synth.cancel()});
+
+  if(!synth){$('novoice').hidden=false;$('novoice').textContent='Dieser Browser kann nicht vorlesen. Probiere Chrome, Edge oder Safari.'}
+  else{loadVoices();synth.onvoiceschanged=loadVoices}
+  ui();openLesson();
+})();
+</script>
+
+</body></html>
