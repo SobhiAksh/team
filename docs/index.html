@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rennstern Dreh</title>
+<meta name="theme-color" content="#0d1017">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{
+  --bg:#0d1017; --surface:#151922; --raised:#1c212c; --fg:#f2f3f7; --muted:#9298a6;
+  --line:#272c38; --accent:#f07a2c; --ink:#0d1017; --ok:#5fb37c;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;
+  display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+header{padding:calc(env(safe-area-inset-top) + 12px) max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));
+  border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.brand{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--muted)}
+.brand b{color:var(--accent);font-weight:500}
+.active-pill{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+main{flex:1;overflow-y:auto;padding:16px max(16px,env(safe-area-inset-right)) 24px max(16px,env(safe-area-inset-left))}
+nav{display:flex;border-top:1px solid var(--line);background:#11141c;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;color:var(--muted);padding:10px 4px 12px;font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav button[aria-current="page"]{color:var(--accent)}
+h1{font-size:22px;margin:0 0 4px;letter-spacing:-.01em}
+h2{font-size:15px;margin:22px 0 10px}
+.label{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sub{color:var(--muted);font-size:13.5px;line-height:1.5;margin:0 0 14px}
+.list{display:flex;flex-direction:column;gap:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;color:var(--fg);font:inherit;width:100%}
+button.card{cursor:pointer}
+.card.is-active{border-color:var(--accent)}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.name{font-weight:600;font-size:16px}
+.code{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.chip{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.btn{border:0;border-radius:10px;padding:13px 14px;font:600 14px var(--sans);cursor:pointer;width:100%}
+.btn.primary{background:var(--accent);color:var(--ink)}
+.btn.ghost{background:var(--raised);color:var(--fg);border:1px solid var(--line)}
+.btn.small{width:auto;padding:8px 12px;font-size:13px}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.back{background:none;border:0;color:var(--muted);font:500 13px var(--sans);padding:0 0 12px;cursor:pointer}
+.steps{display:flex;flex-direction:column;gap:6px}
+.step{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 12px;cursor:pointer}
+.step input{appearance:none;width:20px;height:20px;border:1.5px solid var(--muted);border-radius:6px;flex:0 0 auto;margin:1px 0 0;display:grid;place-items:center}
+.step input:checked{background:var(--accent);border-color:var(--accent)}
+.step input:checked::after{content:"";width:6px;height:10px;border:solid var(--ink);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.step.done .k{color:var(--muted);text-decoration:line-through}
+.step .k{font-weight:600;font-size:14px}
+.step .v{font-size:13px;color:var(--muted);margin-top:2px;line-height:1.45}
+.note{font-size:13px;color:var(--muted);line-height:1.55;border-left:2px solid var(--accent);padding-left:10px;margin:14px 0}
+.progress{height:4px;background:var(--raised);border-radius:4px;overflow:hidden;margin:10px 0 14px}
+.progress span{display:block;height:100%;background:var(--accent);transition:width .2s}
+.timer{font-family:var(--mono);font-size:44px;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0 2px}
+.slate{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.slate .card{text-align:center;padding:10px 6px}
+.slate .val{font:600 22px var(--mono);margin:4px 0}
+.stepper{display:flex;justify-content:center;gap:6px}
+.stepper button{background:var(--raised);border:1px solid var(--line);color:var(--fg);border-radius:8px;width:34px;height:30px;font-size:16px;cursor:pointer}
+input[type=text],textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;color:var(--fg);padding:11px 12px;font:inherit}
+input[type=text]:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.log-item{display:flex;gap:10px;align-items:flex-start}
+.badge{font:600 10px var(--mono);border-radius:5px;padding:3px 6px;flex:0 0 auto}
+.badge.good{background:var(--ok);color:var(--ink)}
+.badge.bad{background:var(--raised);color:var(--muted);border:1px solid var(--line)}
+.shot{display:flex;gap:10px;align-items:center}
+.shot .t{flex:1;min-width:0;word-wrap:break-word}
+.shot.done .t{color:var(--muted);text-decoration:line-through}
+.del{background:none;border:0;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px}
+.key{font:600 11px var(--mono);background:var(--accent);color:var(--ink);border-radius:6px;padding:4px 8px;flex:0 0 auto;min-width:46px;text-align:center}
+.empty{color:var(--muted);font-size:13.5px;text-align:center;padding:18px 0}
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--raised);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>RENNSTERN</b> · DREH</div>
+  <div class="active-pill" id="activePill">KEIN LOOK</div>
+</header>
+<main id="view"></main>
+<nav>
+  <button data-tab="looks"><svg viewBox="0 0 20 20"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg>Looks</button>
+  <button data-tab="dreh"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6"/></svg>Dreh</button>
+  <button data-tab="shots"><svg viewBox="0 0 20 20"><path d="M4 6h12M4 10h12M4 14h8"/></svg>Shots</button>
+  <button data-tab="tasten"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 10h14M3 14h14"/><circle cx="12" cy="6" r="1.6"/><circle cx="7" cy="10" r="1.6"/><circle cx="14" cy="14" r="1.6"/></svg>Tasten</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const LOOKS = [
+  {id:"interview",code:"01",name:"Interview",chips:["S-LOG2","ISO 800","24P"],
+   use:"Sitzinterview mit kontrolliertem Licht.",
+   steps:[
+    ["Bildprofil","PP8 (S-Log2 / S-Gamut). MENU → Kamera-Einstellungen → Bildprofil"],
+    ["Aufnahme","XAVC S 4K, 24p 100M. MENU → Dateiformat / Aufnahmeeinstellung"],
+    ["Verschluss","1/50 (Modus M am Moduswahlrad, Film)"],
+    ["ISO","800 manuell"],
+    ["Weißabgleich","3200K manuell (Kelvin)"],
+    ["Fokus","AF-C, Fokusfeld Flexibler Spot auf die Augen"],
+    ["SteadyShot","Standard (Stativ: aus)"],
+    ["Audio","XLR-Adapter oder Funk, Pegel manuell, Spitzen um −12 dB"],
+    ["Hilfen","Zebra 70 an, Peaking Rot / Mittel"],
+    ["Monitor","Gamma-Anzeigehilfe an (S-Log2 → 709)"]],
+   note:"Bei S-Log2 eher +1 bis +1,7 Blenden überbelichten, damit die Schatten sauber bleiben. Gegraded wird später mit einer S-Log2→709-LUT."},
+  {id:"strasse",code:"02",name:"Straßendoku",chips:["HLG","AUTO-ISO","HANDHELD"],
+   use:"Unterwegs filmen, schnell reagieren, kaum Zeit zum Graden.",
+   steps:[
+    ["Bildprofil","PP10 (HLG2) – sieht direkt natürlich aus"],
+    ["Aufnahme","XAVC S 4K, 24p 100M"],
+    ["Verschluss","1/50"],
+    ["ISO","Auto, Obergrenze 3200"],
+    ["Weißabgleich","Auto"],
+    ["Fokus","AF-C, Fokusfeld Breit"],
+    ["SteadyShot","Aktiv"],
+    ["Audio","Aufsteckmikro, Pegel Auto"],
+    ["Hilfen","Zebra aus, Peaking Gelb / Niedrig"]],
+   note:"HLG braucht keine LUT. Für echte Straßenatmosphäre lieber nah ran und den Ton nie vergessen."},
+  {id:"nacht",code:"03",name:"Nachtkonzert",chips:["ISO 12800","S-LOG2","LOW-LIGHT"],
+   use:"Konzert, Club, Nachtaufnahmen mit wenig Licht.",
+   steps:[
+    ["Bildprofil","PP8 (S-Log2)"],
+    ["Aufnahme","XAVC S 4K, 24p 100M"],
+    ["Verschluss","1/50"],
+    ["ISO","3200 bis 12800 – die α7S II rauscht hier noch wenig"],
+    ["Weißabgleich","3200K, bei LED-Bühnen 4000K testen"],
+    ["Fokus","AF-C, Fokusfeld Zone (bei sehr wenig Licht: MF + Peaking)"],
+    ["SteadyShot","Aktiv"],
+    ["Audio","Pegel manuell niedrig, Konzerte sind laut"],
+    ["Hilfen","Zebra aus, Peaking Rot / Hoch"]],
+   note:"Lieber etwas heller belichten als später die Schatten hochziehen – das rauscht mehr als hohe ISO."},
+  {id:"kino",code:"04",name:"Kino-B-Roll",chips:["S-LOG3","ND","MF"],
+   use:"Ruhige, gestaltete Bilder für den Schnitt.",
+   steps:[
+    ["Bildprofil","PP9 (S-Log3 / S-Gamut3.Cine)"],
+    ["Aufnahme","XAVC S 4K, 24p 100M"],
+    ["Verschluss","1/50 – Helligkeit mit variablem ND regeln"],
+    ["ISO","1600 (Basis-ISO in S-Log3)"],
+    ["Weißabgleich","5600K Tageslicht oder manuell gemessen"],
+    ["Fokus","MF mit Peaking und Fokuslupe"],
+    ["SteadyShot","Standard, oder aus auf Gimbal/Stativ"],
+    ["Audio","Nur Atmo, Pegel manuell"],
+    ["Hilfen","Zebra 52 (Hauttöne), Peaking Weiß / Hoch"]],
+   note:"S-Log3 braucht viel Licht und eine gute Belichtung. Im Zweifel PP8 statt PP9 nehmen."},
+  {id:"zeitlupe",code:"05",name:"Zeitlupe",chips:["120 FPS","1080P","1/250"],
+   use:"Bewegung, Sport, Detail-Shots in Zeitlupe.",
+   steps:[
+    ["Moduswahlrad","Film oder HFR (High Frame Rate)"],
+    ["Aufnahme","XAVC S HD, 120p 100M (nur Full HD)"],
+    ["Bildprofil","PP10 (HLG2) oder aus"],
+    ["Verschluss","1/250"],
+    ["ISO","Auto bis 6400"],
+    ["Weißabgleich","Auto"],
+    ["Fokus","AF-C, Flexibler Spot"],
+    ["Audio","Wird bei 120p nicht sinnvoll genutzt"]],
+   note:"120p in einer 24p-Timeline ergibt 5-fache Zeitlupe. Viel Licht einplanen."},
+  {id:"rungun",code:"06",name:"Run & Gun",chips:["HLG","AF-C","SOFORT"],
+   use:"Events, Backstage, wenn es schnell gehen muss.",
+   steps:[
+    ["Bildprofil","PP10 (HLG2)"],
+    ["Aufnahme","XAVC S 4K, 24p 100M"],
+    ["Verschluss","1/50"],
+    ["ISO","Auto, Obergrenze 6400"],
+    ["Weißabgleich","Auto"],
+    ["Fokus","AF-C, Breit"],
+    ["SteadyShot","Aktiv"],
+    ["Audio","Aufsteckmikro, Pegel Auto"],
+    ["Hilfen","Zebra aus, Peaking Rot / Niedrig"]],
+   note:"Tipp: diesen Look auf M1 am Moduswahlrad speichern, dann ist er in einer Sekunde da."}
+];
+const KEYS = [
+  ["C1","Peaking an/aus","Schärfe-Kanten anzeigen"],
+  ["C2","Zebra an/aus","Belichtung auf der Haut prüfen"],
+  ["C3","Fokuslupe","Für manuellen Fokus"],
+  ["AEL","Belichtung halten","Bei Gegenlicht-Schwenks"],
+  ["Fn","Schnellmenü","Bildprofil, ISO, Weißabgleich"],
+  ["M1–M3","Looks speichern","Moduswahlrad: die 3 wichtigsten Looks"]
+];
+
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem("rs_"+k); return v?JSON.parse(v):d; }catch{ return d; } },
+  set(k,v){ try{ localStorage.setItem("rs_"+k,JSON.stringify(v)); }catch{} }
+};
+let S = {
+  active: store.get("active",null),
+  checks: store.get("checks",{}),
+  slate: store.get("slate",{scene:1,shot:1,take:1}),
+  log: store.get("log",[]),
+  shots: store.get("shots",[]),
+  project: store.get("project","")
+};
+const save = k => store.set(k,S[k]);
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const look = id => LOOKS.find(l=>l.id===id);
+let tab = "looks", detail = null, timer = {start:null,id:null};
+
+function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("show"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),1600); }
+function pill(){ const l=S.active&&look(S.active); $("#activePill").textContent = l ? "LOOK "+l.code+" · "+l.name.toUpperCase() : "KEIN LOOK"; }
+
+function render(){
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current", b.dataset.tab===tab?"page":"false"));
+  pill();
+  const v = $("#view");
+  if(tab==="looks") v.innerHTML = detail ? lookDetail(look(detail)) : looksList();
+  if(tab==="dreh") v.innerHTML = drehView();
+  if(tab==="shots") v.innerHTML = shotsView();
+  if(tab==="tasten") v.innerHTML = keysView();
+  if(tab==="dreh") tick();
+}
+
+function looksList(){
+  return `<h1>Looks</h1><p class="sub">Sechs fertige Setups für die α7S II. Tippe einen Look an und hake die Einstellungen an der Kamera ab.</p>
+  <div class="list">${LOOKS.map(l=>`<button class="card${S.active===l.id?" is-active":""}" data-open="${l.id}">
+    <div class="row"><span class="name">${l.name}</span><span class="code">LOOK / ${l.code}</span></div>
+    <div class="sub" style="margin:4px 0 0">${l.use}</div>
+    <div class="chips">${l.chips.map(c=>`<span class="chip">${c}</span>`).join("")}</div>
+  </button>`).join("")}</div>`;
+}
+function lookDetail(l){
+  const c = S.checks[l.id]||[];
+  const done = c.filter(Boolean).length;
+  return `<button class="back" data-back>← Alle Looks</button>
+  <div class="row"><h1>${l.name}</h1><span class="code">LOOK / ${l.code}</span></div>
+  <p class="sub">${l.use}</p>
+  <div class="label">${done} / ${l.steps.length} eingestellt</div>
+  <div class="progress"><span style="width:${done/l.steps.length*100}%"></span></div>
+  <div class="steps">${l.steps.map((s,i)=>`<label class="step${c[i]?" done":""}">
+    <input type="checkbox" data-check="${l.id}" data-i="${i}"${c[i]?" checked":""}>
+    <div><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div></label>`).join("")}</div>
+  <p class="note">${l.note}</p>
+  <div class="btn-row">
+    <button class="btn primary" data-activate="${l.id}">${S.active===l.id?"Aktiver Look":"Als aktiven Look setzen"}</button>
+    <button class="btn ghost small" data-reset="${l.id}">Zurücksetzen</button>
+  </div>`;
+}
+
+function fmt(ms){ const s=Math.floor(ms/1000); return [Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(n=>String(n).padStart(2,"0")).join(":"); }
+function tick(){ const el=$("#timer"); if(el) el.textContent = fmt(timer.start?Date.now()-timer.start:0); }
+function drehView(){
+  const l = S.active&&look(S.active);
+  const sl = S.slate;
+  return `<h1>Dreh</h1><p class="sub">${l?"Aktiver Look: <b style='color:var(--fg)'>"+l.name+"</b>":"Noch kein Look gewählt – wähle einen unter Looks."}</p>
+  <input type="text" id="project" placeholder="Projektname, z. B. Aftermovie Boom 2026" value="${esc(S.project)}">
+  <div class="timer" id="timer">00:00:00</div>
+  <div class="label" style="text-align:center">${timer.start?"LÄUFT – Timer parallel zur Kamera starten":"STOPPUHR FÜR DIE TAKE-LÄNGE"}</div>
+  <div class="btn-row"><button class="btn ${timer.start?"ghost":"primary"}" data-timer>${timer.start?"Stopp":"Start"}</button></div>
+  <div class="slate">${[["scene","Szene"],["shot","Shot"],["take","Take"]].map(([k,n])=>`<div class="card">
+    <div class="label">${n}</div><div class="val">${sl[k]}</div>
+    <div class="stepper"><button data-step="${k}" data-d="-1" aria-label="${n} minus">−</button><button data-step="${k}" data-d="1" aria-label="${n} plus">+</button></div></div>`).join("")}</div>
+  <input type="text" id="clipNote" placeholder="Notiz zum Take (optional)">
+  <div class="btn-row">
+    <button class="btn primary" data-logclip="good">Gut – loggen</button>
+    <button class="btn ghost" data-logclip="bad">Verwerfen</button>
+  </div>
+  <h2>Clip-Log (${S.log.length})</h2>
+  ${S.log.length?`<div class="list">${S.log.slice().reverse().map(e=>`<div class="card log-item">
+    <span class="badge ${e.good?"good":"bad"}">${e.good?"OK":"NG"}</span>
+    <div style="flex:1;min-width:0"><div class="row"><b>S${e.scene} / ${e.shot} / T${e.take}</b><span class="code">${e.time}</span></div>
+    <div class="sub" style="margin:2px 0 0">${esc(e.look)}${e.dur?" · "+e.dur:""}${e.note?" · "+esc(e.note):""}</div></div></div>`).join("")}</div>
+  <div class="btn-row"><button class="btn ghost" data-export>Log als CSV speichern</button><button class="btn ghost small" data-clearlog>Leeren</button></div>`
+  :`<div class="empty">Noch keine Takes geloggt.</div>`}`;
+}
+
+function shotsView(){
+  return `<h1>Shots</h1><p class="sub">Deine Shotliste für den Drehtag. Hake ab, was im Kasten ist.</p>
+  <form id="shotForm" class="btn-row" style="margin-top:0"><input type="text" id="shotText" placeholder="z. B. Totale Bühne, Gegenlicht"><button class="btn primary small" type="submit">Hinzufügen</button></form>
+  <h2>${S.shots.filter(s=>s.done).length} / ${S.shots.length} erledigt</h2>
+  ${S.shots.length?`<div class="list">${S.shots.map((s,i)=>`<div class="card shot${s.done?" done":""}">
+    <label class="step" style="background:none;border:0;padding:0;flex:1"><input type="checkbox" data-shot="${i}"${s.done?" checked":""}><span class="t">${esc(s.text)}</span></label>
+    <button class="del" data-delshot="${i}" aria-label="Shot löschen">×</button></div>`).join("")}</div>`
+  :`<div class="empty">Noch keine Shots. Füge oben den ersten hinzu.</div>`}`;
+}
+
+function keysView(){
+  return `<h1>Tasten</h1><p class="sub">Empfohlene Belegung der α7S II. Einmal einrichten unter MENU → Benutzer-Einstellungen → Benutzerdef. Key.</p>
+  <div class="list">${KEYS.map(k=>`<div class="card row" style="align-items:center;justify-content:flex-start"><span class="key">${k[0]}</span>
+  <div><b>${k[1]}</b><div class="sub" style="margin:2px 0 0">${k[2]}</div></div></div>`).join("")}</div>
+  <p class="note">Speichere deine drei wichtigsten Looks auf M1–M3: Look an der Kamera einstellen, dann MENU → Kamera-Einstellungen → Speichern → M1 wählen. Danach reicht ein Dreh am Moduswahlrad.</p>`;
+}
+
+document.addEventListener("click",e=>{
+  const t = e.target.closest("button");
+  if(!t) return;
+  if(t.dataset.tab){ tab=t.dataset.tab; detail=null; render(); return; }
+  if(t.dataset.open){ detail=t.dataset.open; render(); window.scrollTo(0,0); $("main").scrollTop=0; return; }
+  if(t.hasAttribute("data-back")){ detail=null; render(); return; }
+  if(t.dataset.activate){ S.active=t.dataset.activate; save("active"); toast("Aktiver Look gesetzt"); render(); return; }
+  if(t.dataset.reset){ S.checks[t.dataset.reset]=[]; save("checks"); render(); return; }
+  if(t.hasAttribute("data-timer")){
+    if(timer.start){ timer.lastDur=fmt(Date.now()-timer.start); timer.start=null; clearInterval(timer.id); }
+    else { timer.start=Date.now(); timer.lastDur=null; timer.id=setInterval(tick,500); }
+    render(); return;
+  }
+  if(t.dataset.step){ const k=t.dataset.step; S.slate[k]=Math.max(1,S.slate[k]+Number(t.dataset.d)); if(k!=="take"&&Number(t.dataset.d)>0) S.slate.take=1; save("slate"); render(); return; }
+  if(t.dataset.logclip){
+    const l=S.active&&look(S.active);
+    const dur = timer.start?fmt(Date.now()-timer.start):timer.lastDur;
+    S.log.push({...S.slate,good:t.dataset.logclip==="good",note:($("#clipNote")||{}).value||"",look:l?l.name:"ohne Look",dur:dur||"",
+      time:new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})});
+    S.slate.take++; save("log"); save("slate"); toast("Take geloggt"); render(); return;
+  }
+  if(t.hasAttribute("data-export")) return exportCsv();
+  if(t.hasAttribute("data-clearlog")){
+    if(t.dataset.confirm){ S.log=[]; save("log"); render(); }
+    else { t.dataset.confirm="1"; t.textContent="Sicher?"; }
+    return;
+  }
+  if(t.dataset.delshot){ S.shots.splice(Number(t.dataset.delshot),1); save("shots"); render(); return; }
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.check){ const id=t.dataset.check; (S.checks[id] ||= [])[Number(t.dataset.i)]=t.checked; save("checks"); render(); }
+  if(t.dataset.shot){ S.shots[Number(t.dataset.shot)].done=t.checked; save("shots"); render(); }
+});
+document.addEventListener("input",e=>{ if(e.target.id==="project"){ S.project=e.target.value; save("project"); } });
+document.addEventListener("submit",e=>{
+  if(e.target.id!=="shotForm") return;
+  e.preventDefault();
+  const v=$("#shotText").value.trim(); if(!v) return;
+  S.shots.push({text:v,done:false}); save("shots"); render(); $("#shotText").focus();
+});
+
+function exportCsv(){
+  const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+  const rows=[["Projekt","Zeit","Szene","Shot","Take","Status","Look","Dauer","Notiz"]]
+    .concat(S.log.map(e=>[S.project,e.time,e.scene,e.shot,e.take,e.good?"OK":"NG",e.look,e.dur,e.note]));
+  const csv=rows.map(r=>r.map(q).join(";")).join("\n");
+  const name=(S.project||"rennstern")+"-cliplog.csv";
+  const file=new File(["﻿"+csv],name,{type:"text/csv"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){ navigator.share({files:[file],title:name}).catch(()=>{}); return; }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(file); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+render();
+</script>
+</body>
+</html>
